@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 export default function NurseThankYouPage() {
@@ -8,12 +9,19 @@ export default function NurseThankYouPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
       <div className="text-center space-y-4 bg-white border border-slate-200 rounded-2xl p-8 shadow-sm max-w-md w-full">
-        <h1 className="text-2xl font-extrabold text-emerald-600">
-          Registration Submitted 🎉
-        </h1>
 
+        <Image
+          src="/doctor_vector.jpg"
+          alt="Register Success"
+          width={1920}
+          height={1080}
+          className='w-full h-full object-contain aspect-[16/9] min-h-[350px]'
+        />
+        <h1 className="text-2xl font-extrabold text-emerald-600">
+          Registration Successfull.
+        </h1>
         <p className="text-slate-600">
-          Your application has been submitted successfully.
+          Your registration has been submitted successfully.
         </p>
 
         <p className="text-sm text-slate-500">

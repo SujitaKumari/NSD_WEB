@@ -1,8 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import { Facebook, Twitter, Instagram, Linkedin, Heart } from "lucide-react";
 import { ASSETS } from "@/data/assets";
+import { usePathname } from "next/navigation";
 
 export function Footer() {
+  const pathname = usePathname();
+
+  if (pathname === "/nurse/register") return null;
   return (
     <footer className="bg-gray-50 border-t border-gray-200 pt-16 pb-8">
       <div className="container mx-auto px-4 md:px-6">

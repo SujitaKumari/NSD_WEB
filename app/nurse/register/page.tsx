@@ -5,6 +5,13 @@ import { useRouter } from 'next/navigation';
 import categoryService from '@/services/categoryService';
 import NurseService from '@/services/nurse';
 import { notifyError, notifySuccess } from '@/utils/toast';
+import Script from 'next/script';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 const COLORS = {
   teal: '#0EA5A6',
@@ -47,7 +54,7 @@ const SECTOR_OPTIONS = [
 ];
 
 const isBitmap = (p = '') =>
-  ['png', 'jpg', 'jpeg', 'webp'].includes((p.split('.').pop() || '').toLowerCase());
+  ['png', 'jpg', 'jpeg', 'webp', 'svg'].includes((p.split('.').pop() || '').toLowerCase());
 
 function prettyLabel(key: DocKey) {
   switch (key) {
@@ -112,6 +119,9 @@ export default function NurseRegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   // const [phoneVerified, setPhoneVerified] = useState(false);
 
+  // Track if payment was successful to avoid hiding loader on modal dismiss
+  const paymentSuccessRef = useRef(false);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
@@ -130,11 +140,11 @@ export default function NurseRegisterPage() {
       try {
         const res = await categoryService.getCategoriesDropdown();
         const list =
-        res?.data?.data?.categories ||
-        res?.data?.data ||
-        res?.data?.categories ||
-        res?.data ||
-        [];
+          res?.data?.data?.categories ||
+          res?.data?.data ||
+          res?.data?.categories ||
+          res?.data ||
+          [];
 
         setCategories(list || []);
         if (list?.length) setActiveCategoryId(list[0]._id);
@@ -183,26 +193,26 @@ export default function NurseRegisterPage() {
   );
 
   /* -------------------- OTP -------------------- */
-// const handleSendOtp = async () => {
-//   if (!/^\d{10}$/.test(phone.trim())) {
-//     setErrors((p) => ({ ...p, phone: 'Enter 10 digit phone number first' }));
-//     return;
-//   }
+  // const handleSendOtp = async () => {
+  //   if (!/^\d{10}$/.test(phone.trim())) {
+  //     setErrors((p) => ({ ...p, phone: 'Enter 10 digit phone number first' }));
+  //     return;
+  //   }
 
-//   try {
-//     const res: any = await NurseService.sendOtpPhoneNumber({
-//       phoneNumber: phone,
-//       countryCode: '+91',
-//     });
+  //   try {
+  //     const res: any = await NurseService.sendOtpPhoneNumber({
+  //       phoneNumber: phone,
+  //       countryCode: '+91',
+  //     });
 
-//     const otp = (res as any)?.otpSent; // backend must return it
-//     if (otp != null) setPhoneOtp(String(otp));
+  //     const otp = (res as any)?.otpSent; // backend must return it
+  //     if (otp != null) setPhoneOtp(String(otp));
 
-//     notifySuccess(res?.data?.message || 'OTP sent successfully');
-//   } catch (err: any) {
-//     notifyError(err?.response?.data?.message || 'Failed to send OTP');
-//   }
-// };
+  //     notifySuccess(res?.data?.message || 'OTP sent successfully');
+  //   } catch (err: any) {
+  //     notifyError(err?.response?.data?.message || 'Failed to send OTP');
+  //   }
+  // };
 
   // const handleVerifyOtp = async () => {
   //   if (!phoneOtp.trim()) {
@@ -225,7 +235,7 @@ export default function NurseRegisterPage() {
 
   /* -------------------- FILES -------------------- */
   const onPickFile = (key: DocKey, file: File | null) => {
-    console.log(file , key)
+    console.log(file, key)
     if (!file) return;
     setFiles((p) => ({ ...p, [key]: file }));
     setErrors((p) => ({ ...p, [key]: '' }));
@@ -359,94 +369,153 @@ export default function NurseRegisterPage() {
     setErrors({});
   };
 
-const handleSubmit = async () => {
-  if (!validateStep4()) return;
-  if (!validateStep3()) {
-    setStep(3);
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  try {
-    const form = new FormData();
-
-    /* ---------- STEP 1 ---------- */
-    form.append('fullName', fullName);
-    form.append('gender', gender);
-    form.append('dateOfBirth', dob);
-    form.append('phoneNumber', phone);
-    form.append('email', email);
-    form.append('countryCode', '+91');
-
-    if (referredByCode) {
-      form.append('referredByCode', referredByCode);
-    }
-
-    /* ---------- STEP 2 ---------- */
-    if (alternatePhoneNumber) {
-      form.append('alternatePhoneNumber', alternatePhoneNumber);
-    }
-
-    form.append('adharNumber', aadhaarNumber);
-    form.append('nursingRegistrationNumber', nursingRegistrationNumber);
-    form.append('qualification', qualification);
-    form.append('workingStatus', workingStatus);
-    form.append('currentWorkingSector', currentWorkingSector);
-    form.append('workingExperience', workingExperience);
-
-    if (skills) {
-      form.append(
-        'skills',
-        JSON.stringify(
-          skills.split(',').map(s => s.trim()).filter(Boolean)
-        )
-      );
-    }
-
-    form.append(
-      'address',
-      JSON.stringify({ street, city, state: stateName, pincode })
-    );
-
-    form.append(
-      'currentLocation',
-      JSON.stringify({
-        address: street,
-        city,
-        state: stateName,
-        pincode,
-        location: { type: 'Point', coordinates: [75.8577, 22.7196] },
-      })
-    );
-
-    /* ---------- STEP 3 FILES ---------- */
-    if (!files.aadhar || !files.nursingRegistration || !files.signature || !files.passportPhoto) {
-      notifyError('All documents are required');
-      setIsSubmitting(false);
+  const handleSubmit = async () => {
+    if (!validateStep4()) return;
+    if (!validateStep3()) {
+      setStep(3);
       return;
     }
-     console.log(files, '<<--------------')
-    form.append('aadhar', files.aadhar);
-    form.append('nursingRegistration', files.nursingRegistration);
-    form.append('signature', files.signature);
-    form.append('passportPhoto', files.passportPhoto);
 
-    /* ---------- STEP 4 SERVICES ---------- */
-    form.append('selectedServiceIds', JSON.stringify(selectedServiceIds)); // ✅ safer key
+    setIsSubmitting(true);
+    paymentSuccessRef.current = false;
 
-    const res = await NurseService.registerAsNurse(form);
+    try {
+      // 1. Create Order
+      const orderRes = await NurseService.createRegistrationOrder();
+      if (!orderRes?.success || !orderRes?.order) {
+        throw new Error('Failed to create payment order');
+      }
 
-    notifySuccess(res?.data?.message || 'Application submitted');
-    resetAll();
-    router.replace('/nurse/thank-you');
+      const { order, key_id } = orderRes;
 
-  } catch (err: any) {
-    notifyError(err?.response?.data?.message || 'Failed to register as nurse');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      const options = {
+        key: key_id,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Nurse Service Doorstep',
+        description: 'Nurse Registration Fee',
+        order_id: order.id,
+        handler: async function (response: any) {
+          console.log('[Frontend] Razorpay Handler Triggered', response);
+          paymentSuccessRef.current = true;
+          handleRegistrationSubmission({
+            razorpayOrderId: response.razorpay_order_id,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpaySignature: response.razorpay_signature
+          });
+        },
+        prefill: {
+          name: fullName,
+          email: email,
+          contact: phone,
+        },
+        theme: {
+          color: '#0EA5A6',
+        },
+        modal: {
+          ondismiss: function () {
+            // ONLY stop submitting if payment was NOT successful
+            if (!paymentSuccessRef.current) {
+              setIsSubmitting(false);
+            }
+          }
+        }
+      };
+
+      const rzp1 = new window.Razorpay(options);
+      rzp1.open();
+
+    } catch (err: any) {
+      notifyError(err?.message || 'Failed to initiate payment');
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRegistrationSubmission = async (paymentDetails: any) => {
+    console.log('[Frontend] Submitting Registration with Payment:', paymentDetails);
+    try {
+      const form = new FormData();
+
+      /* ---------- STEP 1 ---------- */
+      form.append('fullName', fullName);
+      form.append('gender', gender);
+      form.append('dateOfBirth', dob);
+      form.append('phoneNumber', phone);
+      form.append('email', email);
+      form.append('countryCode', '+91');
+
+      if (referredByCode) {
+        form.append('referredByCode', referredByCode);
+      }
+
+      /* ---------- STEP 2 ---------- */
+      if (alternatePhoneNumber) {
+        form.append('alternatePhoneNumber', alternatePhoneNumber);
+      }
+
+      form.append('adharNumber', aadhaarNumber);
+      form.append('nursingRegistrationNumber', nursingRegistrationNumber);
+      form.append('qualification', qualification);
+      form.append('workingStatus', workingStatus);
+      form.append('currentWorkingSector', currentWorkingSector);
+      form.append('workingExperience', workingExperience);
+
+      if (skills) {
+        form.append(
+          'skills',
+          JSON.stringify(
+            skills.split(',').map(s => s.trim()).filter(Boolean)
+          )
+        );
+      }
+
+      form.append(
+        'address',
+        JSON.stringify({ street, city, state: stateName, pincode })
+      );
+
+      form.append(
+        'currentLocation',
+        JSON.stringify({
+          address: street,
+          city,
+          state: stateName,
+          pincode,
+          location: { type: 'Point', coordinates: [75.8577, 22.7196] },
+        })
+      );
+
+      /* ---------- STEP 3 FILES ---------- */
+      if (!files.aadhar || !files.nursingRegistration || !files.signature || !files.passportPhoto) {
+        notifyError('All documents are required');
+        setIsSubmitting(false);
+        return;
+      }
+      // console.log(files, '<<--------------')
+      form.append('aadhar', files.aadhar);
+      form.append('nursingRegistration', files.nursingRegistration);
+      form.append('signature', files.signature);
+      form.append('passportPhoto', files.passportPhoto);
+
+      /* ---------- STEP 4 SERVICES ---------- */
+      form.append('selectedServiceIds', JSON.stringify(selectedServiceIds));
+
+      /* ---------- PAYMENT DETAILS ---------- */
+      form.append('razorpayOrderId', paymentDetails.razorpayOrderId);
+      form.append('razorpayPaymentId', paymentDetails.razorpayPaymentId);
+      form.append('razorpaySignature', paymentDetails.razorpaySignature);
+
+      const res = await NurseService.registerAsNurse(form);
+
+      notifySuccess(res?.data?.message || 'Application submitted');
+      resetAll();
+      router.replace('/nurse/thank-you');
+
+    } catch (err: any) {
+      notifyError(err?.response?.data?.message || 'Failed to register as nurse');
+      setIsSubmitting(false);
+    }
+  };
 
 
 
@@ -459,540 +528,554 @@ const handleSubmit = async () => {
   const ErrorText = ({ k }: { k: string }) =>
     errors[k] ? <div className="text-[11px] text-red-500 -mt-1 mb-3">{errors[k]}</div> : null;
 
+  if (isSubmitting) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <div className="w-16 h-16 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin mb-6" />
+        <h2 className="text-xl font-extrabold text-slate-900">Processing Payment...</h2>
+        <p className="text-slate-500 mt-2">Please do not close this window.</p>
+      </div>
+    );
+  }
+
   return (
-    
- <div className="min-h-screen bg-slate-50 flex flex-col">
 
-    {/* MAIN CENTER AREA (accounts for bottom bar height) */}
-    <div className="flex-1 flex items-center justify-center px-4">
-      <div className="w-full max-w-3xl">
+    <div className="min-h-screen bg-slate-50 flex flex-col py-32">
+      <Script
+        id="razorpay-checkout-js"
+        src="https://checkout.razorpay.com/v1/checkout.js"
+      />
 
-        {/* HEADER */}
-        <h1 className="text-2xl font-extrabold text-slate-900 text-center mb-3">
-          Register as Nurse
-        </h1>
+      {/* MAIN CENTER AREA (accounts for bottom bar height) */}
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="w-full max-w-3xl">
 
-        {/* STEPPER */}
-        <div className="flex items-center justify-center gap-3 mb-6">
-          {STEPS.map((s) => {
-            const active = step === s;
-            return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => goToStep(s)}
-                className={[
-                  'w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-sm border-2 transition',
-                  active
-                    ? 'bg-teal-600 text-white border-teal-600'
-                    : 'bg-white text-teal-600 border-teal-600 hover:bg-teal-50',
-                ].join(' ')}
-              >
-                {s}
-              </button>
-            );
-          })}
-        </div>
+          {/* HEADER */}
+          <h1 className="text-2xl font-extrabold text-slate-900 text-center mb-3">
+            Register as Nurse
+          </h1>
 
-    {/* Form Card */}
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
-
-      {/* STEP 1 */}
-      {step === 1 && (
-        <div className="space-y-2">
-          <div className="text-[13px] font-extrabold text-slate-900 mb-1">Full name</div>
-          <input
-            className={clsInput('fullName')}
-            value={fullName}
-            onChange={(e) => { setFullName(e.target.value); clearError('fullName'); }}
-          />
-          <ErrorText k="fullName" />
-
-          <div className="text-[13px] font-extrabold text-slate-900 mb-1">Phone Number</div>
-          <div className="flex items-center gap-3">
-            <div className="h-12 px-4 rounded-xl border-2 border-teal-600 bg-white flex items-center font-extrabold text-slate-900">
-              +91 ▾
-            </div>
-            <input
-              className={`${inputBase} flex-1 ${errors.phone ? borderErr : borderOk}`}
-              value={phone}
-              maxLength={10}
-              inputMode="numeric"
-              onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '')); clearError('phone'); }}
-            />
+          {/* STEPPER */}
+          <div className="flex items-center justify-center gap-3 mb-6">
+            {STEPS.map((s) => {
+              const active = step === s;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => goToStep(s)}
+                  className={[
+                    'w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-sm border-2 transition',
+                    active
+                      ? 'bg-teal-600 text-white border-teal-600'
+                      : 'bg-white text-teal-600 border-teal-600 hover:bg-teal-50',
+                  ].join(' ')}
+                >
+                  {s}
+                </button>
+              );
+            })}
           </div>
-          <ErrorText k="phone" />
 
-          <div className="text-[13px] font-extrabold text-slate-900 mb-1">Email</div>
-          <input
-            className={clsInput('email')}
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
-          />
-          <ErrorText k="email" />
+          {/* Form Card */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
 
-          <div className="text-[13px] font-extrabold text-slate-900 mb-1">Referral Code (optional)</div>
-          <input
-            className={`${inputBase} ${borderOk}`}
-            value={referredByCode}
-            onChange={(e) => setReferredByCode(e.target.value.toUpperCase())}
-          />
+            {/* STEP 1 */}
+            {step === 1 && (
+              <div className="space-y-2">
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">Full name</div>
+                <input
+                  className={clsInput('fullName')}
+                  value={fullName}
+                  onChange={(e) => { setFullName(e.target.value); clearError('fullName'); }}
+                />
+                <ErrorText k="fullName" />
 
-          <div className="text-[13px] font-extrabold text-slate-900 mb-1">Gender</div>
-          <select
-            className={`${inputBase} ${errors.gender ? borderErr : borderOk}`}
-            value={gender}
-            onChange={(e) => { setGender(e.target.value); clearError('gender'); }}
-          >
-            <option value="">Select Gender</option>
-            {GENDER_OPTIONS.map((g) => (
-              <option key={g.value} value={g.value}>{g.label}</option>
-            ))}
-          </select>
-          <ErrorText k="gender" />
-
-          <div className="text-[13px] font-extrabold text-slate-900 mb-1">Date of Birth</div>
-          <input
-            type="date"
-            className={`${inputBase} ${errors.dob ? borderErr : borderOk}`}
-            value={dob}
-            onChange={(e) => { setDob(e.target.value); clearError('dob'); }}
-          />
-          <ErrorText k="dob" />
-        </div>
-      )}
-
-{/* STEP 2 */}
-{step === 2 && (
-  <div className="space-y-2">
-
-    {/* Alternate Phone */}
-    <div className="text-[13px] font-extrabold text-slate-900 mb-1">
-      Alternate Phone Number
-    </div>
-    <input
-      className={`${inputBase} ${borderOk}`}
-      value={alternatePhoneNumber}
-      inputMode="numeric"
-      onChange={(e) =>
-        setAlternatePhoneNumber(e.target.value.replace(/\D/g, ''))
-      }
-    />
-
-    {/* Aadhaar */}
-    <div className="text-[13px] font-extrabold text-slate-900 mb-1">
-      Aadhaar Number
-    </div>
-    <input
-      className={clsInput('aadhaarNumber')}
-      value={aadhaarNumber}
-      maxLength={12}
-      inputMode="numeric"
-      onChange={(e) => {
-        setAadhaarNumber(e.target.value.replace(/\D/g, ''));
-        clearError('aadhaarNumber');
-      }}
-    />
-    <ErrorText k="aadhaarNumber" />
-
-    {/* Nursing Registration */}
-    <div className="text-[13px] font-extrabold text-slate-900 mb-1">
-      Nursing Registration Number
-    </div>
-    <input
-      className={clsInput('nursingRegistrationNumber')}
-      value={nursingRegistrationNumber}
-      onChange={(e) => {
-        setNursingRegistrationNumber(e.target.value);
-        clearError('nursingRegistrationNumber');
-      }}
-    />
-    <ErrorText k="nursingRegistrationNumber" />
-
-    {/* Qualification */}
-    <div className="text-[13px] font-extrabold text-slate-900 mb-1">
-      Qualification
-    </div>
-    <input
-      className={clsInput('qualification')}
-      value={qualification}
-      onChange={(e) => {
-        setQualification(e.target.value);
-        clearError('qualification');
-      }}
-    />
-    <ErrorText k="qualification" />
-
-    {/* Working Status */}
-    <div className="text-[13px] font-extrabold text-slate-900 mb-1">
-      Working Status
-    </div>
-    <select
-      className={`${inputBase} ${
-        errors.workingStatus ? borderErr : borderOk
-      }`}
-      value={workingStatus}
-      onChange={(e) => {
-        setWorkingStatus(e.target.value);
-        clearError('workingStatus');
-      }}
-    >
-      <option value="">Select Working Status</option>
-      {WORKING_STATUS_OPTIONS.map((w) => (
-        <option key={w.value} value={w.value}>
-          {w.label}
-        </option>
-      ))}
-    </select>
-    <ErrorText k="workingStatus" />
-
-    {/* Current Working Sector */}
-    <div className="text-[13px] font-extrabold text-slate-900 mb-1">
-      Current Working Sector
-    </div>
-    <select
-      className={`${inputBase} ${
-        errors.currentWorkingSector ? borderErr : borderOk
-      }`}
-      value={currentWorkingSector}
-      onChange={(e) => {
-        setCurrentWorkingSector(e.target.value);
-        clearError('currentWorkingSector');
-      }}
-    >
-      <option value="">Select Current Working Sector</option>
-      {SECTOR_OPTIONS.map((s) => (
-        <option key={s.value} value={s.value}>
-          {s.label}
-        </option>
-      ))}
-    </select>
-    <ErrorText k="currentWorkingSector" />
-
-    {/* Working Experience */}
-    <div className="text-[13px] font-extrabold text-slate-900 mb-1">
-      Working Experience (years)
-    </div>
-    <input
-      className={clsInput('workingExperience')}
-      value={workingExperience}
-      inputMode="numeric"
-      onChange={(e) => {
-        setWorkingExperience(e.target.value.replace(/\D/g, ''));
-        clearError('workingExperience');
-      }}
-    />
-    <ErrorText k="workingExperience" />
-
-    {/* Skills */}
-    <div className="text-[13px] font-extrabold text-slate-900 mb-1">
-      Skills (comma separated)
-    </div>
-    <input
-      className={`${inputBase} ${borderOk}`}
-      value={skills}
-      onChange={(e) => setSkills(e.target.value)}
-    />
-
-    {/* Street */}
-    <div className="text-[13px] font-extrabold text-slate-900 mb-1">
-      Street
-    </div>
-    <input
-      className={clsInput('street')}
-      value={street}
-      onChange={(e) => {
-        setStreet(e.target.value);
-        clearError('street');
-      }}
-    />
-    <ErrorText k="street" />
-
-    {/* City */}
-    <div className="text-[13px] font-extrabold text-slate-900 mb-1">
-      City
-    </div>
-    <input
-      className={clsInput('city')}
-      value={city}
-      onChange={(e) => {
-        setCity(e.target.value);
-        clearError('city');
-      }}
-    />
-    <ErrorText k="city" />
-
-    {/* State */}
-    <div className="text-[13px] font-extrabold text-slate-900 mb-1">
-      State
-    </div>
-    <input
-      className={clsInput('stateName')}
-      value={stateName}
-      onChange={(e) => {
-        setStateName(e.target.value);
-        clearError('stateName');
-      }}
-    />
-    <ErrorText k="stateName" />
-
-    {/* Pincode */}
-    <div className="text-[13px] font-extrabold text-slate-900 mb-1">
-      Pincode
-    </div>
-    <input
-      className={clsInput('pincode')}
-      value={pincode}
-      maxLength={6}
-      inputMode="numeric"
-      onChange={(e) => {
-        setPincode(e.target.value.replace(/\D/g, ''));
-        clearError('pincode');
-      }}
-    />
-    <ErrorText k="pincode" />
-
-  </div>
-)}
-
-      {/* STEP 3 */}
-      {step === 3 && (
-        <div className="space-y-3">
-          <div className="text-[14px] font-extrabold text-slate-900">Upload Documents (Required)</div>
-
-          {REQUIRED_DOCS.map((k) => (
-            <div key={k} className="rounded-2xl border border-teal-200 bg-white p-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-[13px] font-extrabold text-slate-900">
-                    {prettyLabel(k)}
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">Phone Number</div>
+                <div className="flex items-center gap-3">
+                  <div className="h-12 px-4 rounded-xl border-2 border-teal-600 bg-white flex items-center font-extrabold text-slate-900">
+                    +91 ▾
                   </div>
-                  {files[k] ? (
-                    <div className="text-[12px] text-slate-600 truncate mt-1">
-                      📎 {files[k]!.name}
-                    </div>
-                  ) : (
-                    <div className="text-[12px] text-slate-500 mt-1">No file selected</div>
-                  )}
+                  <input
+                    className={`${inputBase} flex-1 ${errors.phone ? borderErr : borderOk}`}
+                    value={phone}
+                    maxLength={10}
+                    inputMode="numeric"
+                    onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '')); clearError('phone'); }}
+                  />
                 </div>
+                <ErrorText k="phone" />
 
-                <div className="flex items-center gap-2">
-                  <label className="h-9 px-6 rounded-xl bg-teal-600 text-white font-extrabold cursor-pointer flex items-center justify-center">
-                    {files[k] ? 'Change' : 'Pick'}
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept={k === 'passportPhoto' ? 'image/*' : 'image/*,application/pdf'}
-                      onChange={(e) => onPickFile(k, e.target.files?.[0] || null)}
-                    />
-                  </label>
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">Email</div>
+                <input
+                  className={clsInput('email')}
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
+                />
+                <ErrorText k="email" />
 
-                  {files[k] && (
-                    <button
-                      type="button"
-                      onClick={() => onRemoveFile(k)}
-                      className="h-9 px-4 rounded-xl border border-red-500 text-red-600 font-extrabold"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">Referral Code (optional)</div>
+                <input
+                  className={`${inputBase} ${borderOk}`}
+                  value={referredByCode}
+                  onChange={(e) => setReferredByCode(e.target.value.toUpperCase())}
+                />
+
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">Gender</div>
+                <select
+                  className={`${inputBase} ${errors.gender ? borderErr : borderOk}`}
+                  value={gender}
+                  onChange={(e) => { setGender(e.target.value); clearError('gender'); }}
+                >
+                  <option value="">Select Gender</option>
+                  {GENDER_OPTIONS.map((g) => (
+                    <option key={g.value} value={g.value}>{g.label}</option>
+                  ))}
+                </select>
+                <ErrorText k="gender" />
+
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">Date of Birth</div>
+                <input
+                  type="date"
+                  className={`${inputBase} ${errors.dob ? borderErr : borderOk}`}
+                  value={dob}
+                  onChange={(e) => { setDob(e.target.value); clearError('dob'); }}
+                />
+                <ErrorText k="dob" />
               </div>
+            )}
 
-              {errors[k] && (
-                <div className="text-[11px] text-red-500 mt-2">
-                  {errors[k]}
+            {/* STEP 2 */}
+            {step === 2 && (
+              <div className="space-y-2">
+
+                {/* Alternate Phone */}
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">
+                  Alternate Phone Number
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+                <input
+                  className={`${inputBase} ${borderOk}`}
+                  value={alternatePhoneNumber}
+                  inputMode="numeric"
+                  onChange={(e) =>
+                    setAlternatePhoneNumber(e.target.value.replace(/\D/g, ''))
+                  }
+                />
 
-{/* STEP 4 */}
-{step === 4 && (
-  <div>
-
-    <div className="text-[16px] font-extrabold text-slate-900">
-      What kind of nursing work do you want to take?
-    </div>
-
-    <div className="text-[12px] text-slate-500 mt-1">
-      Pick from multiple categories and services.
-    </div>
-
-    {/* Categories */}
-    <div className="mt-4">
-      {loadingCats ? (
-        <div className="text-slate-500">Loading categories...</div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {categories.map((cat) => {
-            const isActive = cat._id === activeCategoryId;
-            const count = selectedCountForCat(cat._id);
-            const iconUri = `${IMAGE_BASE}${cat.icon || ''}`;
-
-            return (
-              <button
-                key={cat._id}
-                type="button"
-                onClick={() => {
-                  setActiveCategoryId(cat._id);
-                  fetchServicesForCategory(cat._id);
-                }}
-                className={[
-                  'rounded-2xl border p-3 text-center transition shadow-sm',
-                  isActive
-                    ? 'border-teal-600 bg-teal-50'
-                    : 'border-slate-200 bg-white hover:bg-slate-50',
-                ].join(' ')}
-              >
-                <div className="mx-auto w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center mb-2">
-                  {cat?.icon && isBitmap(cat.icon) ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={iconUri}
-                      alt={cat.name}
-                      className="w-7 h-7 object-contain"
-                    />
-                  ) : (
-                    <div className="text-teal-700 font-extrabold">+</div>
-                  )}
+                {/* Aadhaar */}
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">
+                  Aadhaar Number
                 </div>
+                <input
+                  className={clsInput('aadhaarNumber')}
+                  value={aadhaarNumber}
+                  maxLength={12}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    setAadhaarNumber(e.target.value.replace(/\D/g, ''));
+                    clearError('aadhaarNumber');
+                  }}
+                />
+                <ErrorText k="aadhaarNumber" />
 
-                <div
-                  className={[
-                    'text-[12px] font-extrabold leading-4',
-                    isActive ? 'text-teal-800' : 'text-slate-900',
-                  ].join(' ')}
+                {/* Nursing Registration */}
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">
+                  Nursing Registration Number
+                </div>
+                <input
+                  className={clsInput('nursingRegistrationNumber')}
+                  value={nursingRegistrationNumber}
+                  onChange={(e) => {
+                    setNursingRegistrationNumber(e.target.value);
+                    clearError('nursingRegistrationNumber');
+                  }}
+                />
+                <ErrorText k="nursingRegistrationNumber" />
+
+                {/* Qualification */}
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">
+                  Qualification
+                </div>
+                <input
+                  className={clsInput('qualification')}
+                  value={qualification}
+                  onChange={(e) => {
+                    setQualification(e.target.value);
+                    clearError('qualification');
+                  }}
+                />
+                <ErrorText k="qualification" />
+
+                {/* Working Status */}
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">
+                  Working Status
+                </div>
+                <select
+                  className={`${inputBase} ${errors.workingStatus ? borderErr : borderOk
+                    }`}
+                  value={workingStatus}
+                  onChange={(e) => {
+                    setWorkingStatus(e.target.value);
+                    clearError('workingStatus');
+                  }}
                 >
-                  {cat.name}
+                  <option value="">Select Working Status</option>
+                  {WORKING_STATUS_OPTIONS.map((w) => (
+                    <option key={w.value} value={w.value}>
+                      {w.label}
+                    </option>
+                  ))}
+                </select>
+                <ErrorText k="workingStatus" />
+
+                {/* Current Working Sector */}
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">
+                  Current Working Sector
                 </div>
-
-                <div className="text-[11px] text-slate-500 mt-1">
-                  {count} selected
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-
-    {/* Services */}
-    <div className="mt-5 rounded-2xl border border-teal-200 bg-white p-4">
-      <div className="text-[13px] font-extrabold text-slate-900 mb-3">
-        Select services
-      </div>
-
-      {loadingServicesFor === activeCategoryId ? (
-        <div className="text-slate-500">Loading services...</div>
-      ) : currentServices.length === 0 ? (
-        <div className="text-slate-500 text-sm">
-          No services found in this category.
-        </div>
-      ) : (
-        <div className="divide-y divide-slate-100">
-          {currentServices.map((srv) => {
-            const checked = selectedServiceIds.includes(srv._id);
-
-            return (
-              <button
-                key={srv._id}
-                type="button"
-                onClick={() => toggleService(srv._id)}
-                className="w-full text-left py-3 flex items-start gap-3"
-              >
-                <div
-                  className={[
-                    'mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center',
-                    checked
-                      ? 'bg-teal-600 border-teal-600'
-                      : 'bg-white border-teal-600',
-                  ].join(' ')}
+                <select
+                  className={`${inputBase} ${errors.currentWorkingSector ? borderErr : borderOk
+                    }`}
+                  value={currentWorkingSector}
+                  onChange={(e) => {
+                    setCurrentWorkingSector(e.target.value);
+                    clearError('currentWorkingSector');
+                  }}
                 >
-                  {checked && (
-                    <span className="text-white text-xs font-black">✓</span>
-                  )}
-                </div>
+                  <option value="">Select Current Working Sector</option>
+                  {SECTOR_OPTIONS.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+                <ErrorText k="currentWorkingSector" />
 
-                <div className="flex-1">
-                  <div
-                    className={[
-                      'text-[14px] font-extrabold',
-                      checked ? 'text-teal-800' : 'text-slate-900',
-                    ].join(' ')}
-                  >
-                    {srv.title}
+                {/* Working Experience */}
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">
+                  Working Experience (years)
+                </div>
+                <input
+                  className={clsInput('workingExperience')}
+                  value={workingExperience}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    setWorkingExperience(e.target.value.replace(/\D/g, ''));
+                    clearError('workingExperience');
+                  }}
+                />
+                <ErrorText k="workingExperience" />
+
+                {/* Skills */}
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">
+                  Skills (comma separated)
+                </div>
+                <input
+                  className={`${inputBase} ${borderOk}`}
+                  value={skills}
+                  onChange={(e) => setSkills(e.target.value)}
+                />
+
+                {/* Street */}
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">
+                  Street
+                </div>
+                <input
+                  className={clsInput('street')}
+                  value={street}
+                  onChange={(e) => {
+                    setStreet(e.target.value);
+                    clearError('street');
+                  }}
+                />
+                <ErrorText k="street" />
+
+                {/* City */}
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">
+                  City
+                </div>
+                <input
+                  className={clsInput('city')}
+                  value={city}
+                  onChange={(e) => {
+                    setCity(e.target.value);
+                    clearError('city');
+                  }}
+                />
+                <ErrorText k="city" />
+
+                {/* State */}
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">
+                  State
+                </div>
+                <input
+                  className={clsInput('stateName')}
+                  value={stateName}
+                  onChange={(e) => {
+                    setStateName(e.target.value);
+                    clearError('stateName');
+                  }}
+                />
+                <ErrorText k="stateName" />
+
+                {/* Pincode */}
+                <div className="text-[13px] font-extrabold text-slate-900 mb-1">
+                  Pincode
+                </div>
+                <input
+                  className={clsInput('pincode')}
+                  value={pincode}
+                  maxLength={6}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    setPincode(e.target.value.replace(/\D/g, ''));
+                    clearError('pincode');
+                  }}
+                />
+                <ErrorText k="pincode" />
+
+              </div>
+            )}
+
+            {/* STEP 3 */}
+            {step === 3 && (
+              <div className="space-y-3">
+                <div className="text-[14px] font-extrabold text-slate-900">Upload Documents (Required)</div>
+
+                {REQUIRED_DOCS.map((k) => (
+                  <div key={k} className="rounded-2xl border border-teal-200 bg-white p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-[13px] font-extrabold text-slate-900">
+                          {prettyLabel(k)}
+                        </div>
+                        {files[k] ? (
+                          <div className="text-[12px] text-slate-600 truncate mt-1">
+                            📎 {files[k]!.name}
+                          </div>
+                        ) : (
+                          <div className="text-[12px] text-slate-500 mt-1">No file selected</div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <label className="h-9 px-6 rounded-xl bg-teal-600 text-white font-extrabold cursor-pointer flex items-center justify-center">
+                          {files[k] ? 'Change' : 'Pick'}
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept={k === 'passportPhoto' ? 'image/*' : 'image/*,application/pdf'}
+                            onChange={(e) => onPickFile(k, e.target.files?.[0] || null)}
+                          />
+                        </label>
+
+                        {files[k] && (
+                          <button
+                            type="button"
+                            onClick={() => onRemoveFile(k)}
+                            className="h-9 px-4 rounded-xl border border-red-500 text-red-600 font-extrabold"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {errors[k] && (
+                      <div className="text-[11px] text-red-500 mt-2">
+                        {errors[k]}
+                      </div>
+                    )}
                   </div>
+                ))}
+              </div>
+            )}
 
-                  {srv.description && (
-                    <div className="text-[12px] text-slate-500 line-clamp-1">
-                      {srv.description}
+            {/* STEP 4 */}
+            {step === 4 && (
+              <div>
+
+                <div className="text-[16px] font-extrabold text-slate-900">
+                  What kind of nursing work do you want to take?
+                </div>
+
+                <div className="text-[12px] text-slate-500 mt-1">
+                  Pick from multiple categories and services.
+                </div>
+                <div className="text-[12px] text-slate-500">
+                  Note: The charges for registration will be applied of INR ₹99.
+                </div>
+
+                {/* Categories */}
+                <div className="mt-4">
+                  {loadingCats ? (
+                    <div className="text-slate-500">Loading categories...</div>
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {categories.map((cat) => {
+                        const isActive = cat._id === activeCategoryId;
+                        const count = selectedCountForCat(cat._id);
+                        const iconUri = `https://nsd-uploads-prod.s3.eu-north-1.amazonaws.com/${IMAGE_BASE}${cat.icon || ''}`;
+
+                        return (
+                          <button
+                            key={cat._id}
+                            type="button"
+                            onClick={() => {
+                              setActiveCategoryId(cat._id);
+                              fetchServicesForCategory(cat._id);
+                            }}
+                            className={[
+                              'rounded-2xl border p-3 text-center transition shadow-sm',
+                              isActive
+                                ? 'border-teal-600 bg-teal-50'
+                                : 'border-slate-200 bg-white hover:bg-slate-50',
+                            ].join(' ')}
+                          >
+                            <div className="mx-auto w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center mb-2">
+                              {cat?.icon && isBitmap(cat.icon) ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={iconUri}
+                                  alt={cat.name}
+                                  className="w-7 h-7 object-contain"
+                                />
+                              ) : (
+                                <div className="text-teal-700 font-extrabold">+</div>
+                              )}
+                            </div>
+
+                            <div
+                              className={[
+                                'text-[12px] font-extrabold leading-4',
+                                isActive ? 'text-teal-800' : 'text-slate-900',
+                              ].join(' ')}
+                            >
+                              {cat.name}
+                            </div>
+
+                            <div className="text-[11px] text-slate-500 mt-1">
+                              {count} selected
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
-              </button>
-            );
-          })}
+
+                {/* Services */}
+                <div className="mt-5 rounded-2xl border border-teal-200 bg-white p-4">
+                  <div className="text-[13px] font-extrabold text-slate-900 mb-3">
+                    Select services
+                  </div>
+
+                  {loadingServicesFor === activeCategoryId ? (
+                    <div className="text-slate-500">Loading services...</div>
+                  ) : currentServices.length === 0 ? (
+                    <div className="text-slate-500 text-sm">
+                      No services found in this category.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {currentServices.map((srv) => {
+                        const checked = selectedServiceIds.includes(srv._id);
+
+                        return (
+                          <button
+                            key={srv._id}
+                            type="button"
+                            onClick={() => toggleService(srv._id)}
+                            className="w-full text-left py-3 flex items-start gap-3"
+                          >
+                            <div
+                              className={[
+                                'mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center',
+                                checked
+                                  ? 'bg-teal-600 border-teal-600'
+                                  : 'bg-white border-teal-600',
+                              ].join(' ')}
+                            >
+                              {checked && (
+                                <span className="text-white text-xs font-black">✓</span>
+                              )}
+                            </div>
+
+                            <div className="flex-1">
+                              <div
+                                className={[
+                                  'text-[14px] font-extrabold',
+                                  checked ? 'text-teal-800' : 'text-slate-900',
+                                ].join(' ')}
+                              >
+                                {srv.title}
+                              </div>
+
+                              {srv.description && (
+                                <div className="text-[12px] text-slate-500 line-clamp-1">
+                                  {srv.description}
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {errors.services && (
+                  <div className="text-[11px] text-red-500 mt-2">
+                    {errors.services}
+                  </div>
+                )}
+              </div>
+            )}
+
+
+          </div>
         </div>
-      )}
-    </div>
-
-    {errors.services && (
-      <div className="text-[11px] text-red-500 mt-2">
-        {errors.services}
       </div>
-    )}
-  </div>
-)}
-
-
-    </div>
-  </div>
-</div>
 
       {/* Bottom buttons */}
       <div className="h-20 fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200">
-      <div className="max-w-3xl mx-auto px-4 h-full flex gap-3 justify-end items-center">
-        {step > 1 ? (
-          <button
-            type="button"
-            onClick={() => setStep((s) => (s - 1) as Step)}
-            className="h-12 px-6 rounded-xl bg-slate-100 text-slate-900 font-extrabold"
-          >
-            Prev
-          </button>
-        ) : (
-          <div className="w-[92px]" />
-        )}
+        <div className="max-w-3xl mx-auto px-4 h-full flex gap-3 justify-end items-center">
+          {step > 1 ? (
+            <button
+              type="button"
+              onClick={() => setStep((s) => (s - 1) as Step)}
+              className="h-12 px-6 rounded-xl bg-slate-100 text-slate-900 font-extrabold"
+            >
+              Prev
+            </button>
+          ) : (
+            <div className="w-[92px]" />
+          )}
 
-        {step < 4 ? (
-          <button
-            type="button"
-            onClick={handleNext}
-            className="px-10 h-12 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-[16px]"
-          >
-            Next
-          </button>
-        ) : (
-          <button
-            type="button"
-            disabled={isSubmitting}
-            onClick={handleSubmit}
-            className={[
-              'w-60 h-12 rounded-xl text-white font-extrabold text-[16px]',
-              isSubmitting
-                ? 'bg-teal-300 cursor-not-allowed'
-                : 'bg-teal-600 hover:bg-teal-700',
-            ].join(' ')}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit'}
-          </button>
-        )}
+          {step < 4 ? (
+            <button
+              type="button"
+              onClick={handleNext}
+              className="px-10 h-12 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-[16px]"
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={handleSubmit}
+              className={[
+                'w-60 h-12 rounded-xl text-white font-extrabold text-[16px]',
+                isSubmitting
+                  ? 'bg-teal-300 cursor-not-allowed'
+                  : 'bg-teal-600 hover:bg-teal-700',
+              ].join(' ')}
+            >
+              {isSubmitting ? 'Processing...' : 'Pay ₹99'}
+            </button>
+          )}
+        </div>
       </div>
     </div>
-
-  </div>
-);
+  );
 }
