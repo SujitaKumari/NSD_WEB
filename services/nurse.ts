@@ -4,7 +4,7 @@ import axios from 'axios';
 const NurseService = {
   registerAsNurse: async (payload: FormData) => {
     const { data } = await axios.post(
-      'http://192.168.29.48:8080/api/v1/auth/nurse/register',
+      'https://nsdapi.designoftime.co.in/api/v1/auth/nurse/register',
       payload
     );
     return data;
