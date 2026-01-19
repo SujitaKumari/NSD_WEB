@@ -6,8 +6,8 @@ import Link from "next/link";
 export default function PrivacyPolicy() {
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4">
-            <div className="max-w-5xl mx-auto p-6 mt-12">
-                <div className="  rounded-lg p-8 md:p-12 w-full mx-auto">
+            <div className="max-w-4xl mx-auto md:p-6 mt-12">
+                <div className="rounded-lg md:p-12 w-full mx-auto">
                     <div className="flex items-center justify-center mb-8">
                         <Link href="/">
                             <Image
@@ -69,8 +69,8 @@ export default function PrivacyPolicy() {
                     <h2 className="text-xl font-semibold mt-6">8. Contact Us</h2>
                     <p>
                         If you have any questions about this privacy policy, please contact us at{" "}
-                        <a href="mailto:info@nsdcare.in" className="text-blue-500 hover:underline">
-                            info@nsdcare.in
+                        <a href="mailto:support@nsdcare.in" className="text-blue-500 hover:underline">
+                            support@nsdcare.in
                         </a>.
                     </p>
                 </div>
