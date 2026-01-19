@@ -38,20 +38,20 @@ export function Footer() {
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
             <ul className="space-y-3 text-sm text-gray-500">
-              <li><Link href="#" className="hover:text-primary">About Us</Link></li>
-              <li><Link href="#services" className="hover:text-primary">Services</Link></li>
-              <li><Link href="#" className="hover:text-primary">Careers</Link></li>
+              <li><Link href="/#how-it-works" className="hover:text-primary">About Us</Link></li>
+              <li><Link href="/#services" className="hover:text-primary">Services</Link></li>
+              {/* <li><Link href="#" className="hover:text-primary">Careers</Link></li> */}
               <li><Link href="#" className="hover:text-primary">Contact</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Support</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Quick Links</h3>
             <ul className="space-y-3 text-sm text-gray-500">
-              <li><Link href="#" className="hover:text-primary">Help Center</Link></li>
-              <li><Link href="#" className="hover:text-primary">Safety Guidelines</Link></li>
-              <li><Link href="#" className="hover:text-primary">Terms of Service</Link></li>
-              <li><Link href="#" className="hover:text-primary">Privacy Policy</Link></li>
+              {/* <li><Link href="#" className="hover:text-primary">Help Center</Link></li>
+              <li><Link href="#" className="hover:text-primary">Safety Guidelines</Link></li> */}
+              <li><Link href="/terms-and-conditions" className="hover:text-primary">Terms of Service</Link></li>
+              <li><Link href="/policies" className="hover:text-primary">Privacy Policy</Link></li>
             </ul>
           </div>
 
