@@ -50,8 +50,8 @@ export function Footer() {
             <ul className="space-y-3 text-sm text-gray-500">
               {/* <li><Link href="#" className="hover:text-primary">Help Center</Link></li>
               <li><Link href="#" className="hover:text-primary">Safety Guidelines</Link></li> */}
-              <li><Link href="/terms-and-conditions" className="hover:text-primary">Terms of Service</Link></li>
-              <li><Link href="/policies" className="hover:text-primary">Privacy Policy</Link></li>
+              <li><Link href="/terms-and-conditions" className="hover:text-primary">Terms & Conditions</Link></li>
+              <li><Link href="/privacy-policy" className="hover:text-primary">Privacy Policy</Link></li>
               <li><Link href="/delete-account" className="hover:text-primary">Request Delete Account</Link></li>
             </ul>
           </div>
