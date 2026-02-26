@@ -20,39 +20,39 @@ export default function DeleteAccount() {
                         </Link>
                     </div>
 
-                    <h1 class="text-2xl font-bold mb-4">How to delete your account?</h1>
-                    <p class="mb-4">
+                    <h1 className="text-2xl font-bold mb-4">How to delete your account?</h1>
+                    <p className="mb-4">
                         NSD currently does not provide an in-app “Delete Account” button. If you want to delete your account and associated
                         personal data, please raise a deletion request with our support team.
                     </p>
 
-                    <h2 class="text-xl font-semibold mt-6">1. Steps to Request Account Deletion</h2>
-                    <ul class="list-disc ml-6 mb-4">
+                    <h2 className="text-xl font-semibold mt-6">1. Steps to Request Account Deletion</h2>
+                    <ul className="list-disc ml-6 mb-4">
                         <li>Send an email to our support team from your registered email address.</li>
-                        <li>Use the subject line: <span class="font-semibold">“Account Deletion Request”</span>.</li>
+                        <li>Use the subject line: <span className="font-semibold">“Account Deletion Request”</span>.</li>
                         <li>In the email, mention your registered mobile number and your full name (as used in the app).</li>
                     </ul>
 
-                    <h2 class="text-xl font-semibold mt-6">2. ⏱️ Processing Time</h2>
-                    <ul class="list-disc ml-6 mb-4">
-                        <li>We will verify your request and process deletion within <span class="font-semibold">48 hours</span>.</li>
+                    <h2 className="text-xl font-semibold mt-6">2. ⏱️ Processing Time</h2>
+                    <ul className="list-disc ml-6 mb-4">
+                        <li>We will verify your request and process deletion within <span className="font-semibold">48 hours</span>.</li>
                         <li>After deletion is completed, you will no longer be able to access your NSD account.</li>
                     </ul>
 
-                    <h2 class="text-xl font-semibold mt-6">3. 🔐 What Happens After Deletion?</h2>
-                    <ul class="list-disc ml-6 mb-4">
+                    <h2 className="text-xl font-semibold mt-6">3. 🔐 What Happens After Deletion?</h2>
+                    <ul className="list-disc ml-6 mb-4">
                         <li>Your profile and personal data associated with your NSD account will be removed from our active systems.</li>
                         <li>Some records may be retained where legally required (for example: compliance, dispute resolution, fraud prevention, or accounting).</li>
                         <li>Anonymized or aggregated data (not linked back to you) may be retained for internal analytics and service improvement.</li>
                     </ul>
 
-                    <h2 class="text-xl font-semibold mt-6">4. 📩 Need Help?</h2>
-                    <p class="mb-2">For account deletion or any support, contact us at:</p>
-                    <p class="mb-4">
+                    <h2 className="text-xl font-semibold mt-6">4. 📩 Need Help?</h2>
+                    <p className="mb-2">For account deletion or any support, contact us at:</p>
+                    <p className="mb-4">
                         Email:
-                        <a href="mailto:support@nsdcare.in" class="text-blue-500"> support@nsdcare.in</a>
+                        <a href="mailto:support@nsdcare.in" className="text-blue-500"> support@nsdcare.in</a>
                     </p>
-                    <p class="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500">
                         Tip: Email us from your registered email ID for faster verification.
                     </p>
                 </div>

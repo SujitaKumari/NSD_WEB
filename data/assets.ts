@@ -29,6 +29,7 @@ export const SITE_CONFIG = {
     fullName: "Nursing Service at Doorstep",
     description: "Certified home nursing services from your phone.",
     links: {
-        waitlist: "#waitlist",
+        contact: "#contact",
+        email: "designoftimeco@gmail.com",
     }
 };

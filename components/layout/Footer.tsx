@@ -38,10 +38,10 @@ export function Footer() {
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
             <ul className="space-y-3 text-sm text-gray-500">
-              <li><Link href="/#how-it-works" className="hover:text-primary">About Us</Link></li>
-              <li><Link href="/#services" className="hover:text-primary">Services</Link></li>
+              <li><Link href="/about-us" className="hover:text-primary">About Us</Link></li>
+              <li><Link href="/services" className="hover:text-primary">Services</Link></li>
               {/* <li><Link href="#" className="hover:text-primary">Careers</Link></li> */}
-              <li><Link href="#" className="hover:text-primary">Contact</Link></li>
+              <li><Link href="/#contact" className="hover:text-primary">Contact</Link></li>
             </ul>
           </div>
 
@@ -62,9 +62,9 @@ export function Footer() {
               <li>info@nsdcare.in</li>
               <li>+91 8989419412 (Mon-Sat)</li>
               <li className="pt-2">
-                <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
+                {/* <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
                   Pre-launch Mode
-                </span>
+                </span> */}
               </li>
             </ul>
           </div>
@@ -73,7 +73,7 @@ export function Footer() {
         <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
           <p>© {new Date().getFullYear()} Nursing Service at Doorstep. All rights reserved.</p>
           <div className="flex items-center gap-1">
-            Made with <Heart size={12} className="text-red-500 fill-red-500" /> in India
+            Made with <Heart size={12} className="text-red-500 fill-red-500" /> by Design of time, India
           </div>
         </div>
       </div>
