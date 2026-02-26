@@ -27,14 +27,16 @@ export function Navbar() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-white/95 backdrop-blur-sm shadow-sm py-3" : "bg-transparent py-5"
+        isScrolled
+          ? "bg-white/95 backdrop-blur-sm shadow-sm py-3"
+          : "bg-transparent py-5"
       }`}
     >
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           {/* Using CSS mask or just simple img for now. SVG is best. */}
-          <img src= {ASSETS.logo.main} alt="NSD Logo" className="h-20 w-auto" />
+          <img src={ASSETS.logo.main} alt="NSD Logo" className="h-20 w-auto" />
         </Link>
 
         {/* Desktop Nav */}
@@ -49,14 +51,16 @@ export function Navbar() {
             </Link>
           ))}
 
-          {/* Nurse Registration Button */}
-          <Button asChild variant="outline" className="rounded-full px-5">
+          {/* <Button asChild variant="outline" className="rounded-full px-5">
             <Link href="/nurse/register">Nurse Registration</Link>
-          </Button>
+          </Button> */}
 
-
-          <Button asChild className="rounded-full px-6 shadow-none" variant="default">
-            <Link href="#waitlist">Join Waitlist</Link>
+          <Button
+            asChild
+            className="rounded-full px-6 shadow-none"
+            variant="default"
+          >
+            <Link href="/#contact">Contact Us</Link>
           </Button>
         </div>
 
@@ -83,18 +87,16 @@ export function Navbar() {
             </Link>
           ))}
 
-           {/*Nurse Registration (Mobile) */}
-          <Button asChild variant="outline" className="w-full">
+          {/* <Button asChild variant="outline" className="w-full">
             <Link
               href="/nurse/register" onClick={() => setIsMobileMenuOpen(false)}>
               Nurse Registration
             </Link>
-          </Button>
-
+          </Button> */}
 
           <Button asChild className="w-full mt-2" size="lg">
-            <Link href="#waitlist" onClick={() => setIsMobileMenuOpen(false)}>
-              Join Waitlist
+            <Link href="#contact" onClick={() => setIsMobileMenuOpen(false)}>
+              Contact Us
             </Link>
           </Button>
         </div>

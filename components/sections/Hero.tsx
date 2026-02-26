@@ -2,8 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { CheckCircle2 } from "lucide-react";
 import { ASSETS } from "@/data/assets";
 
 export function Hero() {
@@ -34,20 +33,8 @@ export function Hero() {
                 Expert care for elders, post-op recovery, and newborns—just a tap away.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start mb-10">
-                <Button asChild size="lg" variant="accent" className="w-full sm:w-auto text-lg h-14 px-8 rounded-full">
-                  <Link href="#waitlist">
-                    Join the Waitlist <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="w-full sm:w-auto text-lg h-14 px-8 rounded-full border-2">
-                  <Link href="#waitlist">
-                    Get Launch Updates
-                  </Link>
-                </Button>
-              </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-6 justify-center md:justify-start text-sm text-gray-500 font-medium">
+              <div className="flex flex-col sm:flex-row items-center gap-6 justify-center md:justify-start text-sm text-gray-500 font-medium mb-4">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-teal-500" />
                   <span>100% Certified Nurses</span>
@@ -57,6 +44,41 @@ export function Hero() {
                   <span>Background Verified</span>
                 </div>
               </div>
+
+              <div id="download" className="mt-7">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center justify-center md:justify-start">
+                  {/* Google Play badge */}
+                  <a id="playStoreLink" href="https://play.google.com/store/apps/details?id=com.dot.nsd.client" target="_blank" rel="noopener noreferrer" className="focus-ring flex items-center h-[45px]" aria-label="Get it on Google Play">
+                    <img id="playStoreBadge" alt="Get it on Google Play" className="h-full w-auto select-none" loading="eager" decoding="async" src="/images/PlayStore.svg" />
+                  </a>
+
+                  {/* App Store badge*/}
+                  <a id="appStoreLink" href="https://apps.apple.com/in/app/nsdcare-in/id6754030993" target="_blank" rel="noopener noreferrer" className="focus-ring flex items-center h-[45px]" aria-label="Download on the App Store">
+                    <img id="appStoreBadge" src="/images/AppStore.svg" alt="Download on the App Store" className="h-full w-auto select-none" loading="eager" decoding="async" />
+
+                    {/* Fallback if badge not provided */}
+                    <span id="appStoreFallback" className="inline-flex h-[56px] items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm text-white/85 shadow-soft transition hover:bg-white/10 hidden">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="opacity-90" aria-hidden="true">
+                        <path d="M16.8 13.7c.02 2.3 2.03 3.06 2.05 3.07-.01.05-.32 1.1-1.05 2.18-.63.95-1.29 1.9-2.32 1.92-1.01.02-1.34-.6-2.5-.6-1.16 0-1.53.58-2.49.62-.98.04-1.73-1.01-2.36-1.95-1.29-1.93-2.27-5.45-.95-7.84.66-1.18 1.85-1.93 3.14-1.95.98-.02 1.9.66 2.5.66.6 0 1.72-.82 2.9-.7.49.02 1.88.2 2.77 1.5-.07.04-1.65.96-1.63 2.89Z" fill="white" opacity=".9"></path>
+                        <path d="M14.9 3.6c.52-.63.87-1.5.78-2.36-.75.03-1.67.5-2.2 1.13-.48.55-.9 1.45-.79 2.3.84.07 1.68-.42 2.21-1.07Z" fill="white" opacity=".85"></path>
+                      </svg>
+                      <span>App Store</span>
+                    </span>
+                  </a>
+                </div>
+              </div>
+
+              <div id="features" className="mt-8 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-3xl border border-teal-100 bg-white shadow-sm p-5">
+                  <div className="text-sm font-semibold text-gray-900">Fast workflows</div>
+                  <div className="mt-1 text-sm text-gray-500">Install, open, act — no friction.</div>
+                </div>
+                <div className="rounded-3xl border border-teal-100 bg-white shadow-sm p-5">
+                  <div className="text-sm font-semibold text-gray-900">Mobile-first</div>
+                  <div className="mt-1 text-sm text-gray-500">Designed to feel native and modern.</div>
+                </div>
+              </div>
+
             </motion.div>
           </div>
 

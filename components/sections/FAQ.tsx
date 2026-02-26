@@ -46,6 +46,7 @@ export function FAQ() {
               <button
                 onClick={() => setOpenIndex(opne => opne === index ? null : index)}
                 className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
+                suppressHydrationWarning
               >
                 <span className="font-semibold text-gray-900">{faq.question}</span>
                 {openIndex === index ? (

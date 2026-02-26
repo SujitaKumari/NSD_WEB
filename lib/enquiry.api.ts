@@ -5,11 +5,13 @@ export interface PublicEnquiryPayload{
     mobileNumber: string;
     city: string;
     serviceNeeded: string;
+    email?: string;
+    message?: string;
 }
 
 export const submitPublicEnquiry = async (
   payload: PublicEnquiryPayload
 ) => {
-  const response = await api.post("/public/enquiry", payload);
+  const response = await api.post("/api/contact", payload);
   return response.data;
 };

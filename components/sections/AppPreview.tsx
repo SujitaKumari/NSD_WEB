@@ -124,7 +124,7 @@ export function AppPreview() {
 
         <div className="flex flex-col md:flex-row justify-center items-center gap-8">
           <motion.img
-            src="/images/screen-1.png"
+            src="/images/ss.png"
             alt="Browse Services"
             className="w-[260px] md:w-[280px] rounded-2xl shadow-xl"
             initial={{ opacity: 0, y: 40 }}
@@ -133,7 +133,7 @@ export function AppPreview() {
           />
 
           <motion.img
-            src="/images/screen-2.png"
+            src="/images/ss (1).png"
             alt="Book Nurse"
             className="w-[260px] md:w-[280px] rounded-2xl shadow-xl"
             initial={{ opacity: 0, y: 40 }}
@@ -143,7 +143,17 @@ export function AppPreview() {
           />
 
           <motion.img
-            src="/images/screen-3.png"
+            src="/images/ss (2).png"
+            alt="Confirmation"
+            className="w-[260px] md:w-[280px] rounded-2xl shadow-xl"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          />
+
+          <motion.img
+            src="/images/ss (3).png"
             alt="Confirmation"
             className="w-[260px] md:w-[280px] rounded-2xl shadow-xl"
             initial={{ opacity: 0, y: 40 }}

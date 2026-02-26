@@ -5,7 +5,7 @@ import { WhyNSD } from "@/components/sections/WhyNSD";
 import { Safety } from "@/components/sections/Safety";
 import { AppPreview } from "@/components/sections/AppPreview";
 import { WhoItsFor } from "@/components/sections/WhoItsFor";
-import { Waitlist } from "@/components/sections/Waitlist";
+import { Contact } from "@/components/sections/Contact";
 import { FAQ } from "@/components/sections/FAQ";
 
 export default function Home() {
@@ -18,7 +18,7 @@ export default function Home() {
       <Safety />
       <AppPreview />
       <WhoItsFor />
-      <Waitlist />
+      <Contact />
       <FAQ />
     </>
   );
